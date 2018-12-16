@@ -258,7 +258,7 @@ public class MapObjectList<E> extends ArrayList<E> {
         return subset;
     }
 
-    public MapObjectList matches(String field, String string) {
+    public MapObjectList<E> matches(String field, String string) {
         if (size() == 0) return this;
         Pattern pattern = Pattern.compile(string);
         Accessor accessor = new Accessor(field, this);
@@ -273,7 +273,7 @@ public class MapObjectList<E> extends ArrayList<E> {
         return subset;
     }
 
-    public MapObjectList equals(String field, String string) {
+    public MapObjectList<E> equals(String field, String string) {
         if (size() == 0) return this;
         Accessor accessor = new Accessor(field, this);
         MapObjectList subset = new MapObjectList();
@@ -287,19 +287,19 @@ public class MapObjectList<E> extends ArrayList<E> {
         return subset;
     }
 
-    public MapObjectList greater(String field, String string) {
+    public MapObjectList<E> greater(String field, String string) {
         return compareAndCollect(field, string, 1);
     }
 
-    public MapObjectList less(String field, String string) {
+    public MapObjectList<E> less(String field, String string) {
         return compareAndCollect(field, string, -1);
     }
 
-    public MapObjectList greater(String field, Object object) {
+    public MapObjectList<E> greater(String field, Object object) {
         return compareAndCollect(field, object, 1);
     }
 
-    public MapObjectList less(String field, Object object) {
+    public MapObjectList<E> less(String field, Object object) {
         return compareAndCollect(field, object, -1);
     }
 
@@ -308,7 +308,7 @@ public class MapObjectList<E> extends ArrayList<E> {
      * 
      * @param field
      */
-    public MapObjectList ascending(String field) {
+    public MapObjectList<E> ascending(String field) {
         return sort(field);
     }
 
@@ -317,15 +317,15 @@ public class MapObjectList<E> extends ArrayList<E> {
      * 
      * @param field
      */
-    public MapObjectList descending(String field) {
+    public MapObjectList<E> descending(String field) {
         return sort(field, true);
     }
 
-    public MapObjectList sort(String field) {
+    public MapObjectList<E> sort(String field) {
         return sort(field, false);
     }
 
-    public MapObjectList sort(String field, boolean reverse) {
+    public MapObjectList<E> sort(String field, boolean reverse) {
         if (size() == 0) return this;
         Comparator comparator = getComparator(field);
 
@@ -336,7 +336,7 @@ public class MapObjectList<E> extends ArrayList<E> {
         return list;
     }
 
-    private MapObjectList compareAndCollect(String field, Object data, int condition) {
+    private MapObjectList<E> compareAndCollect(String field, Object data, int condition) {
         if (size() == 0) return this;
         try {
             Class type = get(0).getClass();

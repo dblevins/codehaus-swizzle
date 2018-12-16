@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class IssueTest {
 
@@ -161,6 +162,16 @@ public class IssueTest {
 
         final List<Issue> subTasks = issue.getSubTasks();
         assertEquals(9, subTasks.size());
+
+        assertTrue(subTasks instanceof MapObjectList);
+
+        final MapObjectList<Issue> issues = (MapObjectList<Issue>) subTasks;
+        final Issue openejb100 = issues
+                .matches("key", "OPENEJB-100")
+                .get(0);
+
+        assertEquals("OPENEJB-100", openejb100.getKey());
+        assertEquals("Dependency Injection: Setter", openejb100.getSummary());
     }
 
 

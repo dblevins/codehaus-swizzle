@@ -60,7 +60,22 @@ public class JiraRest implements Jira {
     }
 
     public Issue createIssue(final Issue issue) throws Exception {
-        return null;
+        try {
+
+            final Map map = issue.toMap();
+
+            final URI issueUri = base.resolve("issue");
+
+            final Response response = client.preparePost(issueUri.toASCIIString())
+                    .execute().get();
+            final JsonProvider provider = JsonProvider.provider();
+            final JsonReader reader = provider.createReader(response.getResponseBodyAsStream());
+            final JsonObject jsonObject = reader.readObject();
+
+            return new Issue(toMap(jsonObject));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public Issue updateIssue(final String issueKey, final Issue issue) throws Exception {

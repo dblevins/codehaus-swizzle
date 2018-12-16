@@ -31,6 +31,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * @version $Revision$ $Date$
@@ -45,19 +46,23 @@ public class MapObject {
     /**
      * A list of fields in this hashmap which should not be sent on xml-rpc create or update calls.
      */
-    protected List xmlrpcNoSend = new ArrayList();
+    protected List<String> xmlrpcNoSend = new ArrayList();
 
-    protected Map attributes;
+    protected Map<String, Object> attributes;
 
     private final SimpleDateFormat[] formats;
-    protected final Map fields;
+    protected final Map<String, Object> fields;
 
     protected MapObject() {
         this(new HashMap());
     }
 
     protected MapObject(Map data) {
-        fields = new HashMap(data);
+        this(data, true);
+    }
+
+    protected MapObject(Map data, final boolean copy) {
+        fields = copy ? new HashMap(data) : data;
         formats = new SimpleDateFormat[]{
                 new SimpleDateFormat("EEE MMM d HH:mm:ss z yyyy"),
                 new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z"),
@@ -253,6 +258,43 @@ public class MapObject {
         return (MapObject) object;
     }
 
+    public Map toMap2() {
+        return unwrap(this.fields);
+    }
+
+    private Map unwrap(final Map<String, Object> src) {
+        final TreeMap<String, Object> map = new TreeMap<>();
+
+        for (final Map.Entry<String, Object> entry : src.entrySet()) {
+            if (xmlrpcNoSend.contains(entry.getKey())) continue;
+            map.put(entry.getKey(), unwrap(entry.getValue()));
+        }
+
+        return map;
+    }
+
+    private Object unwrap(final Object value) {
+        if (value instanceof MapObject) {
+            return ((MapObject) value).toMap2();
+        }
+
+        if (value instanceof Map) {
+            return unwrap((Map) value);
+        }
+
+        if (value instanceof MapObjectList) {
+            final MapObjectList molist = (MapObjectList) value;
+            final ArrayList<Object> list = new ArrayList<>();
+
+            for (final Object o : molist) {
+                list.add(unwrap(o));
+            }
+            return list;
+        }
+
+        return value;
+    }
+
     public Map toMap() {
         // The fields table might have some key->null entries,
         // don't want to add those to the hashmap.
@@ -266,7 +308,7 @@ public class MapObject {
 
         // Remove anything marked as "no send"
         for (int i = 0; i < xmlrpcNoSend.size(); i++) {
-            String fieldName = (String) xmlrpcNoSend.get(i);
+            String fieldName = xmlrpcNoSend.get(i);
             map.remove(fieldName);
         }
 

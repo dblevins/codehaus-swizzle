@@ -16,6 +16,7 @@
  */
 package org.codehaus.swizzle.jira;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +30,9 @@ public class Issue extends MapObject implements Comparable {
     private final MapObject fields;
 
     public Issue() {
-        this(new HashMap());
+        this(new HashMap() {{
+            put("fields", new HashMap<String, Object>());
+        }});
     }
 
     public Issue(Map data) {
@@ -38,7 +41,7 @@ public class Issue extends MapObject implements Comparable {
         final Object fields = data.get("fields");
         if (fields == null) throw new IllegalStateException("No 'fields' entry found");
         if (fields.getClass().isAssignableFrom(Map.class)) throw new IllegalStateException("No 'fields' entry should be a map: found " + fields.getClass());
-        this.fields = new MapObject(Map.class.cast(fields));
+        this.fields = new MapObject(Map.class.cast(fields), false);
 
         xmlrpcRefs.put(IssueType.class, "id");
         xmlrpcRefs.put(Status.class, "id");
@@ -181,11 +184,13 @@ public class Issue extends MapObject implements Comparable {
     }
 
     public void addLabel(String label) {
-        getLabels().add(label);
+        final List labels = (List) fields.fields.computeIfAbsent("labels", o -> new ArrayList<>());
+        labels.add(label);
     }
 
-    public void removeLabels(String label) {
-        getLabels().remove(label);
+    public void removeLabel(String label) {
+        final List labels = (List) fields.fields.computeIfAbsent("labels", o -> new ArrayList<>());
+        labels.remove(label);
     }
 
     /**
@@ -378,6 +383,9 @@ public class Issue extends MapObject implements Comparable {
         fields.setMapObjects("attachments", attachments);
     }
 
+    public Map toMap2() {
+        return super.toMap2();
+    }
     public Map toMap() {
         // It's unlikely that you can even update the votes via xml-rpc
         // till we know for sure, best to make sure the tally is current
