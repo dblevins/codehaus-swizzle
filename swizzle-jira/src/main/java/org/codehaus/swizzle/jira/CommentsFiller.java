@@ -38,6 +38,6 @@ public class CommentsFiller implements IssueFiller {
             return;
         }
         List comments = jira.getComments(issue);
-        issue.fields.put("comments", comments);
+        ((MapObject) issue).fields.put("comments", comments);
     }
 }

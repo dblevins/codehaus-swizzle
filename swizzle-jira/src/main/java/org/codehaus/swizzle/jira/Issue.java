@@ -26,12 +26,20 @@ import java.util.Map;
  */
 public class Issue extends MapObject implements Comparable {
 
+    private final MapObject fields;
+
     public Issue() {
         this(new HashMap());
     }
 
     public Issue(Map data) {
         super(data);
+
+        final Object fields = data.get("fields");
+        if (fields == null) throw new IllegalStateException("No 'fields' entry found");
+        if (fields.getClass().isAssignableFrom(Map.class)) throw new IllegalStateException("No 'fields' entry should be a map: found " + fields.getClass());
+        this.fields = new MapObject(Map.class.cast(fields));
+
         xmlrpcRefs.put(IssueType.class, "id");
         xmlrpcRefs.put(Status.class, "id");
         xmlrpcRefs.put(User.class, "name");
@@ -42,56 +50,57 @@ public class Issue extends MapObject implements Comparable {
         xmlrpcNoSend.add("customFieldValues");
         xmlrpcNoSend.add("link");
         xmlrpcNoSend.add("voters");
-        xmlrpcNoSend.add("subTasks");
+        xmlrpcNoSend.add("subtasks");
         xmlrpcNoSend.add("parentTask");
         xmlrpcNoSend.add("attachments");
         xmlrpcNoSend.add("comments");
     }
 
+
     /**
      *
      */
     public Project getProject() {
-        return (Project) getMapObject("project", Project.class);
+        return (Project) fields.getMapObject("project", Project.class);
     }
 
     public void setProject(Project project) {
-        setMapObject("project", project);
+        fields.setMapObject("project", project);
     }
 
     public IssueType getType() {
-        return (IssueType) getMapObject("issuetype", IssueType.class);
+        return (IssueType) fields.getMapObject("issuetype", IssueType.class);
     }
 
     public void setType(IssueType type) {
-        setMapObject("issuetype", type);
+        fields.setMapObject("issuetype", type);
     }
 
     /**
      * example: 2005-10-11 06:10:39.115
      */
     public Date getCreated() {
-        return getDate("created");
+        return fields.getDate("created");
     }
 
     public void setCreated(Date created) {
-        setDate("created", created);
+        fields.setDate("created", created);
     }
 
     /**
      *
      */
     public String getSummary() {
-        return getString("summary");
+        return fields.getString("summary");
     }
 
     public void setSummary(String summary) {
-        setString("summary", summary);
+        fields.setString("summary", summary);
     }
 
     /**
      * This data is not available via interface except scraping the html from the web interface. If you know of another way to get it, please let us know.
-     * 
+     *
      * @return List<User>
      */
     public List<User> getVoters() {
@@ -100,13 +109,13 @@ public class Issue extends MapObject implements Comparable {
             for (int i = getInt("votes"); i > 0; i--) {
                 votes.add(new User());
             }
-            setMapObjects("voters", votes);
+            fields.setMapObjects("voters", votes);
         }
-        return getMapObjects("voters", User.class);
+        return fields.getMapObjects("voters", User.class);
     }
 
     public void setVoters(List users) {
-        setMapObjects("voters", users);
+        fields.setMapObjects("voters", users);
     }
 
     /**
@@ -120,29 +129,29 @@ public class Issue extends MapObject implements Comparable {
      * List of something
      */
     public List<CustomFieldValue> getCustomFieldValues() {
-        return getMapObjects("customFieldValues", CustomFieldValue.class);
+        return fields.getMapObjects("customFieldValues", CustomFieldValue.class);
     }
 
     public void setCustomFieldValues(List customFieldValues) {
-        setMapObjects("customFieldValues", customFieldValues);
+        fields.setMapObjects("customFieldValues", customFieldValues);
     }
 
     /**
      * List of Comments
      */
     public List<Comment> getComments() {
-        return getMapObjects("comments", Comment.class);
+        return fields.getMapObjects("comments", Comment.class);
     }
 
     /**
      * List of Components
      */
     public List<Component> getComponents() {
-        return getMapObjects("components", Component.class);
+        return fields.getMapObjects("components", Component.class);
     }
 
     public void setComponents(List components) {
-        setMapObjects("components", components);
+        fields.setMapObjects("components", components);
     }
 
     // I think this is a type as it's plural but only adding one component.
@@ -151,7 +160,7 @@ public class Issue extends MapObject implements Comparable {
     public void addComponents(Component component) {
         getComponents().add(component);
     }
-    
+
     public void addComponent(Component component) {
         getComponents().add(component);
     }
@@ -164,11 +173,11 @@ public class Issue extends MapObject implements Comparable {
      * List of Labels
      */
     public List<String> getLabels() {
-        return getList("labels");
+        return fields.getList("labels");
     }
 
     public void setLabels(List labels) {
-        setList("labels", labels);
+        fields.setList("labels", labels);
     }
 
     public void addLabel(String label) {
@@ -183,11 +192,11 @@ public class Issue extends MapObject implements Comparable {
      * List of Versions
      */
     public List<Version> getAffectsVersions() {
-        return getMapObjects("affectsVersions", Version.class);
+        return fields.getMapObjects("affectsVersions", Version.class);
     }
 
     public void setAffectsVersions(List affectsVersions) {
-        setMapObjects("affectsVersions", affectsVersions);
+        fields.setMapObjects("affectsVersions", affectsVersions);
     }
 
     public void addAffectsVersion(Version version) {
@@ -213,30 +222,30 @@ public class Issue extends MapObject implements Comparable {
      * 6
      */
     public Status getStatus() {
-        return (Status) getMapObject("status", Status.class);
+        return (Status) fields.getMapObject("status", Status.class);
     }
 
     public void setStatus(Status status) {
-        setMapObject("status", status);
+        fields.setMapObject("status", status);
     }
 
     public Resolution getResolution() {
-        return (Resolution) getMapObject("resolution", Resolution.class);
+        return (Resolution) fields.getMapObject("resolution", Resolution.class);
     }
 
     public void setResolution(Resolution resolution) {
-        setMapObject("resolution", resolution);
+        fields.setMapObject("resolution", resolution);
     }
 
     /**
      * List
      */
     public List<Version> getFixVersions() {
-        return getMapObjects("fixVersions", Version.class);
+        return fields.getMapObjects("fixVersions", Version.class);
     }
 
     public void setFixVersions(List fixVersions) {
-        setMapObjects("fixVersions", fixVersions);
+        fields.setMapObjects("fixVersions", fixVersions);
     }
 
     public void addFixVersion(Version version) {
@@ -248,11 +257,11 @@ public class Issue extends MapObject implements Comparable {
     }
 
     public List<Issue> getSubTasks() {
-        return getMapObjects("subTasks", Issue.class);
+        return fields.getMapObjects("subtasks", Issue.class);
     }
 
     public void setSubTasks(List subTasks) {
-        setMapObjects("subTasks", subTasks);
+        fields.setMapObjects("subtasks", subTasks);
     }
 
     public void addSubTask(Issue issue) {
@@ -264,79 +273,79 @@ public class Issue extends MapObject implements Comparable {
     }
 
     protected Issue getParentTask() {
-        return (Issue) getMapObject("parentTask", Issue.class);
+        return (Issue) fields.getMapObject("parentTask", Issue.class);
     }
 
     protected void setParentTask(Issue parentTask) {
-        setMapObject("parentTask", parentTask);
+        fields.setMapObject("parentTask", parentTask);
     }
 
     /**
      *
      */
     public String getDescription() {
-        return getString("description");
+        return fields.getString("description");
     }
 
     public void setDescription(String description) {
-        setString("description", description);
+        fields.setString("description", description);
     }
 
     public User getReporter() {
-        return (User) getMapObject("reporter", User.class);
+        return (User) fields.getMapObject("reporter", User.class);
     }
 
     public void setReporter(User reporter) {
-        setMapObject("reporter", reporter);
+        fields.setMapObject("reporter", reporter);
     }
 
     /**
      *
      */
     public Date getUpdated() {
-        return getDate("updated");
+        return fields.getDate("updated");
     }
 
     public void setUpdated(Date updated) {
-        setDate("updated", updated);
+        fields.setDate("updated", updated);
     }
 
     /**
      *
      */
     public Date getDuedate() {
-        return getDate("duedate");
+        return fields.getDate("duedate");
     }
 
     public void setDuedate(Date duedate) {
-        setDate("duedate", duedate);
+        fields.setDate("duedate", duedate);
     }
 
     public User getAssignee() {
-        return (User) getMapObject("assignee", User.class);
+        return (User) fields.getMapObject("assignee", User.class);
     }
 
     public void setAssignee(User assignee) {
-        setMapObject("assignee", assignee);
+        fields.setMapObject("assignee", assignee);
     }
 
     /**
      *
      */
     public String getEnvironment() {
-        return getString("environment");
+        return fields.getString("environment");
     }
 
     public void setEnvironment(String environment) {
-        setString("environment", environment);
+        fields.setString("environment", environment);
     }
 
     public Priority getPriority() {
-        return (Priority) getMapObject("priority", Priority.class);
+        return (Priority) fields.getMapObject("priority", Priority.class);
     }
 
     public void setPriority(Priority priority) {
-        setMapObject("priority", priority);
+        fields.setMapObject("priority", priority);
     }
 
     /**
@@ -354,25 +363,25 @@ public class Issue extends MapObject implements Comparable {
      * Only available via the RSS source Not available via XML-RPC source
      */
     public String getLink() {
-        return getString("link");
+        return fields.getString("link");
     }
 
     public void setLink(String link) {
-        setString("link", link);
+        fields.setString("link", link);
     }
 
     public List<Attachment> getAttachments() {
-        return getMapObjects("attachments", Attachment.class);
+        return fields.getMapObjects("attachments", Attachment.class);
     }
 
     public void setAttachments(List attachments) {
-        setMapObjects("attachments", attachments);
+        fields.setMapObjects("attachments", attachments);
     }
 
     public Map toMap() {
         // It's unlikely that you can even update the votes via xml-rpc
         // till we know for sure, best to make sure the tally is current
-        setInt("votes", getVoters().size());
+        fields.setInt("votes", getVoters().size());
         return super.toMap();
     }
 

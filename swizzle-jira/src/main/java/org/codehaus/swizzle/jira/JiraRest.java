@@ -76,10 +76,7 @@ public class JiraRest implements Jira {
             final JsonReader reader = provider.createReader(response.getResponseBodyAsStream());
             final JsonObject jsonObject = reader.readObject();
 
-            final Map<String, Object> map = toMap(jsonObject);
-            final Map<String, Object> fields = (Map<String, Object>) map.remove("fields");
-            map.putAll(fields);
-            return new Issue(map);
+            return new Issue(toMap(jsonObject));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
