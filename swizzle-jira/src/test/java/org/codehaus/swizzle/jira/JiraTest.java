@@ -144,7 +144,7 @@ public class JiraTest extends SwizzleJiraTestCase {
     }
 
     public void testAutofillProject() throws Exception {
-        Jira jira = getJira();
+        JiraXmlRpc jira = getJira();
         jira.autofill("project", true);
 
         Issue issue = jira.getIssue("SWIZZLE-1");

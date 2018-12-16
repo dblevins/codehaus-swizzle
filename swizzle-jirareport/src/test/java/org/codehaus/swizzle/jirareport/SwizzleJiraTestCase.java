@@ -1,16 +1,15 @@
 package org.codehaus.swizzle.jirareport;
 
-import org.codehaus.swizzle.jira.Jira;
-
 import junit.framework.TestCase;
+import org.codehaus.swizzle.jira.JiraXmlRpc;
 
 public abstract class SwizzleJiraTestCase
     extends TestCase
 {
-    protected Jira getJira()
+    protected JiraXmlRpc getJira()
         throws Exception
     {
-        Jira jira = new Jira( "http://jira.codehaus.org/rpc/xmlrpc" );
+        JiraXmlRpc jira = new JiraXmlRpc( "http://jira.codehaus.org/rpc/xmlrpc" );
         jira.login( "swizzle", "swizzle" );
         return jira;
     }

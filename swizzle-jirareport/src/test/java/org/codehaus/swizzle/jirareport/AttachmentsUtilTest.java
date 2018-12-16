@@ -18,9 +18,8 @@ package org.codehaus.swizzle.jirareport;
 
 import org.codehaus.swizzle.jira.Attachment;
 import org.codehaus.swizzle.jira.Issue;
-import org.codehaus.swizzle.jira.Jira;
 
-import junit.framework.TestCase;
+import org.codehaus.swizzle.jira.JiraXmlRpc;
 
 import java.io.File;
 import java.util.List;
@@ -32,7 +31,7 @@ public class AttachmentsUtilTest extends SwizzleJiraTestCase {
     public void testSaveAttachment() throws Exception {
         AttachmentsUtil attachmentsUtil = new AttachmentsUtil();
 
-        Jira jira = getJira();
+        JiraXmlRpc jira = getJira();
         jira.autofill("attachments", true);
 
         Issue issue = jira.getIssue("SWIZZLE-13");

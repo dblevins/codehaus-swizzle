@@ -21,18 +21,23 @@ import java.util.Map;
 /**
  * @version $Revision$ $Date$
  */
-public class BasicObject extends MapObject {
+public class Label extends MapObject {
 
-    public BasicObject() {
+    public Label() {
         super();
     }
 
-    public BasicObject(Map data) {
+    public Label(Map data) {
         super(data);
     }
 
+    public Label(String name) {
+        this();
+        setName(name);
+    }
+
     /**
-     * the id of this constant
+     * the id of the component
      */
     public int getId() {
         return getInt("id");
@@ -43,7 +48,7 @@ public class BasicObject extends MapObject {
     }
 
     /**
-     * the name of the constant
+     * the name of the component
      */
     public String getName() {
         return getString("name");
@@ -51,28 +56,6 @@ public class BasicObject extends MapObject {
 
     public void setName(String name) {
         setString("name", name);
-    }
-
-    /**
-     * the description of this constant
-     */
-    public String getDescription() {
-        return getString("description");
-    }
-
-    public void setDescription(String description) {
-        setString("description", description);
-    }
-
-    /**
-     * the URL to retrieve the icon of this constant
-     */
-    public String getIcon() {
-        return getString("iconUrl");
-    }
-
-    public void setIcon(String icon) {
-        setString("iconUrl", icon);
     }
 
     public String toString() {
@@ -85,10 +68,10 @@ public class BasicObject extends MapObject {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        final BasicObject that = (BasicObject) o;
+        final Label component = (Label) o;
 
-        if (getId() != that.getId()) return false;
-        if (getName() != null ? !getName().equals(that.getName()) : that.getName() != null) return false;
+        if (getId() != component.getId()) return false;
+        if (getName() != null ? !getName().equals(component.getName()) : component.getName() != null) return false;
 
         return true;
     }

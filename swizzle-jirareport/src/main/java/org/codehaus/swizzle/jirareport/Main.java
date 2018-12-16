@@ -24,6 +24,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.MethodInvocationException;
+import org.codehaus.swizzle.jira.JiraXmlRpc;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -168,7 +169,7 @@ public class Main {
     public static class Xmlrpc {
         public Jira connect(String user, String url) throws Exception {
             String[] strings = user.split(":");
-            Jira jira = new Jira(url);
+            JiraXmlRpc jira = new JiraXmlRpc(url);
             jira.login(strings[0], strings[1]);
             return jira;
         }

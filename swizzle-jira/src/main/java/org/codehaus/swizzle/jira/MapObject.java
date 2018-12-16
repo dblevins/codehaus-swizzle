@@ -58,14 +58,20 @@ public class MapObject {
 
     protected MapObject(Map data) {
         fields = new HashMap(data);
-        formats = new SimpleDateFormat[] { new SimpleDateFormat("EEE MMM d HH:mm:ss z yyyy"), new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z"), new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S"), };
+        formats = new SimpleDateFormat[]{
+                new SimpleDateFormat("EEE MMM d HH:mm:ss z yyyy"),
+                new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z"),
+                new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S"),
+                new SimpleDateFormat("yyyy-MM-dd"),
+        };
         attributes = new Attributes();
     }
 
     public Map getFields() {
-    	return fields;
+        return fields;
     }
-    
+
     public Map getAttributes() {
         return attributes;
     }
@@ -75,9 +81,7 @@ public class MapObject {
     }
 
     protected boolean getBoolean(String key) {
-        String value = getString(key);
-        if (value == null) return false;
-        return (value.equalsIgnoreCase("true") || value.equals("1") || value.equalsIgnoreCase("yes"));
+        return (Boolean) fields.get(key);
     }
 
     protected int getInt(String key) {
@@ -91,11 +95,11 @@ public class MapObject {
     }
 
     protected void setInt(String key, int value) {
-        fields.put(key, Integer.toString(value));
+        fields.put(key, value);
     }
 
     protected void setBoolean(String key, boolean value) {
-        fields.put(key, Boolean.toString(value));
+        fields.put(key, value);
     }
 
     protected void setUrl(String key, URL url) {
@@ -167,25 +171,42 @@ public class MapObject {
     }
 
     protected <T> List<T> getMapObjects(String key, Class<T> type) {
-        List<T> list;
-        Object collection = fields.get(key);
-        if (collection instanceof Object[]) {
-            Object[] vector = (Object[]) collection;
-            try {
-                list = toList(vector, type);
-                Iterator iter = list.iterator();
-                fields.put(key, list);
-            } catch (Exception e) {
-                list = new MapObjectList();
-            }
-        } else if (collection == null) {
-            list = new MapObjectList<T>();
-            fields.put(key, list);
-        } else {
-            list = (List) collection;
-        }
 
-        return list;
+        final Object value = fields.get(key);
+
+        if (value instanceof MapObjectList) {
+
+            return (List<T>) value;
+
+        } else if (value instanceof Collection) {
+
+            try {
+                final List<T> list = toList(Collection.class.cast(value), type);
+                fields.put(key, list);
+                return list;
+            } catch (Exception e) {
+                throw new IllegalStateException("Cannot convert list", e);
+            }
+
+        } else if (value instanceof Object[]) {
+
+            try {
+                final Object[] vector = (Object[]) value;
+                final List<T> list = toList(vector, type);
+                fields.put(key, list);
+                return list;
+            } catch (Exception e) {
+                throw new IllegalStateException("Cannot convert list", e);
+            }
+
+        } else if (value == null) {
+
+            final List<T> list = new MapObjectList<T>();
+            fields.put(key, list);
+            return list;
+
+        }
+        throw new IllegalStateException("Unknown list type: " + value);
     }
 
     protected void setMapObjects(String key, List objects) {
@@ -203,8 +224,19 @@ public class MapObject {
         return list;
     }
 
+    protected List toList(Collection vector, Class type) throws Exception {
+        final List list = new MapObjectList(vector.size());
+
+        for (final Object o : vector) {
+            Object object = createMapObject(type, o);
+            list.add(object);
+        }
+
+        return list;
+    }
+
     private MapObject createMapObject(Class type, Object value) throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        Constructor constructor = type.getConstructor(new Class[] { Map.class });
+        Constructor constructor = type.getConstructor(new Class[]{Map.class});
         Map data;
 
         Object idField = xmlrpcRefs.get(type);
@@ -217,7 +249,7 @@ public class MapObject {
             throw new RuntimeException("Cannot create a " + type.getName() + " from '" + value + "'");
         }
 
-        Object object = constructor.newInstance(new Object[] { data });
+        Object object = constructor.newInstance(new Object[]{data});
         return (MapObject) object;
     }
 
@@ -225,7 +257,7 @@ public class MapObject {
         // The fields table might have some key->null entries,
         // don't want to add those to the hashmap.
         Map map = new HashMap(fields.size());
-        for (Iterator i = fields.entrySet().iterator(); i.hasNext();) {
+        for (Iterator i = fields.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry entry = (Map.Entry) i.next();
             if (entry.getValue() != null) {
                 map.put(entry.getKey(), entry.getValue());
@@ -240,7 +272,7 @@ public class MapObject {
 
         // Expand any MapObject values to be Hashmaps
         // Where specified, use the appropriate Id Field instead of the Hashmap
-        for (Iterator iterator = map.entrySet().iterator(); iterator.hasNext();) {
+        for (Iterator iterator = map.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry entry = (Map.Entry) iterator.next();
             Object key = entry.getKey();
             Object value = entry.getValue();

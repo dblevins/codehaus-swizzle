@@ -60,11 +60,11 @@ public class Issue extends MapObject implements Comparable {
     }
 
     public IssueType getType() {
-        return (IssueType) getMapObject("type", IssueType.class);
+        return (IssueType) getMapObject("issuetype", IssueType.class);
     }
 
     public void setType(IssueType type) {
-        setMapObject("type", type);
+        setMapObject("issuetype", type);
     }
 
     /**
@@ -158,6 +158,25 @@ public class Issue extends MapObject implements Comparable {
 
     public void removeComponents(Component component) {
         getComponents().remove(component);
+    }
+
+    /**
+     * List of Labels
+     */
+    public List<String> getLabels() {
+        return getList("labels");
+    }
+
+    public void setLabels(List labels) {
+        setList("labels", labels);
+    }
+
+    public void addLabel(String label) {
+        getLabels().add(label);
+    }
+
+    public void removeLabels(String label) {
+        getLabels().remove(label);
     }
 
     /**

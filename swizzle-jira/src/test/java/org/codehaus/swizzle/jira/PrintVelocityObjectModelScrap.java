@@ -39,7 +39,7 @@ public class PrintVelocityObjectModelScrap extends TestCase {
         skip.add("equals");
         skip.add("compareTo");
         skip.add("hashCode");
-        print(Jira.class);
+        print(JiraXmlRpc.class);
         print(Comment.class);
         print(JiraRss.class);
         // fail("");

@@ -5,10 +5,10 @@ import junit.framework.TestCase;
 public abstract class SwizzleJiraTestCase
     extends TestCase
 {
-    protected Jira getJira()
+    protected JiraXmlRpc getJira()
         throws Exception
     {
-        Jira jira = new Jira( "http://jira.codehaus.org/rpc/xmlrpc" );
+        JiraXmlRpc jira = new JiraXmlRpc( "http://jira.codehaus.org/rpc/xmlrpc" );
         jira.login( "swizzle", "swizzle" );
         return jira;
     }

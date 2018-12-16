@@ -16,8 +16,6 @@
  */
 package org.codehaus.swizzle.jira;
 
-import junit.framework.TestCase;
-
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -30,7 +28,7 @@ public class SubTasksTest extends SwizzleJiraTestCase {
     SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
 
     public void testJira() throws Exception {
-        Jira jira = getJira();
+        JiraXmlRpc jira = getJira();
         jira.autofill("subtasks", true);
 
         Issue issue = jira.getIssue("SWIZZLE-2");

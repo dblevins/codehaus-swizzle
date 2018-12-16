@@ -49,14 +49,30 @@ public class User extends MapObject {
     }
 
     /**
-     * the full name of this user
+     * Use getDisplayName
      */
+    @Deprecated
     public String getFullname() {
-        return getString("fullname");
+        return getDisplayName();
     }
 
+    /**
+     * Use setDisplayName
+     */
+    @Deprecated
     public void setFullname(String fullname) {
-        setString("fullname", fullname);
+        setDisplayName(fullname);
+    }
+
+    /**
+     * the full name of this user
+     */
+    public String getDisplayName() {
+        return getString("displayName");
+    }
+
+    public void setDisplayName(String displayName) {
+        setString("displayName", displayName);
     }
 
     /**
