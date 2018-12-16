@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.json.Json;
-import javax.json.JsonObjectBuilder;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
@@ -35,17 +34,45 @@ public class IssueAsJsonTest {
             put(JsonGenerator.PRETTY_PRINTING, true);
         }});
 
-        final JsonObjectBuilder builder = Json.createObjectBuilder();
+        final Issue issue = new Issue() {{
+            setKey("FOO-123");
+            setSummary("Do the thing with the thing");
+            setDescription("Description of foo 123");
+            addComponent(new Component() {{
+                setName("Shapes");
+            }});
+            addLabel("generated");
+            addAffectsVersion(new Version() {{
+                setName("1.0.3");
+            }});
+        }};
 
-        builder.add("a", true);
-        builder.add("c", true);
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         final JsonWriter writer = factory.createWriter(out);
-        writer.write(builder.build());
+        writer.write(JiraRest.toJsonObject(issue));
         writer.close();
 
-        Assert.assertEquals("", new String(out.toByteArray()));
+        Assert.assertEquals("{\n" +
+                "  \"fields\":{\n" +
+                "    \"affectsVersions\":[\n" +
+                "      {\n" +
+                "        \"name\":\"1.0.3\"\n" +
+                "      }\n" +
+                "    ],\n" +
+                "    \"components\":[\n" +
+                "      {\n" +
+                "        \"name\":\"Shapes\"\n" +
+                "      }\n" +
+                "    ],\n" +
+                "    \"description\":\"Description of foo 123\",\n" +
+                "    \"labels\":[\n" +
+                "      \"generated\"\n" +
+                "    ],\n" +
+                "    \"summary\":\"Do the thing with the thing\"\n" +
+                "  },\n" +
+                "  \"key\":\"FOO-123\"\n" +
+                "}", new String(out.toByteArray()));
     }
 
 

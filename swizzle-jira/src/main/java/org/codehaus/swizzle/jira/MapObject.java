@@ -258,11 +258,11 @@ public class MapObject {
         return (MapObject) object;
     }
 
-    public Map toMap2() {
+    public Map<String,Object> toMap2() {
         return unwrap(this.fields);
     }
 
-    private Map unwrap(final Map<String, Object> src) {
+    private Map<String,Object> unwrap(final Map<String, Object> src) {
         final TreeMap<String, Object> map = new TreeMap<>();
 
         for (final Map.Entry<String, Object> entry : src.entrySet()) {

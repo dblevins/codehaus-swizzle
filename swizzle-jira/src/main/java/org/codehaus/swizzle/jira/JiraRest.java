@@ -19,10 +19,15 @@ import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.Response;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 import javax.json.spi.JsonProvider;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +103,7 @@ public class JiraRest implements Jira {
     }
 
     private static Map<String, Object> toMap(final JsonObject jsonObject) {
-        final Map<String, Object> map = new HashMap<String, Object>();
+        final Map<String, Object> map = new HashMap<>();
 
         for (final Map.Entry<String, JsonValue> entry : jsonObject.entrySet()) {
             final String key = entry.getKey();
@@ -132,6 +137,43 @@ public class JiraRest implements Jira {
         final String s = value.toString();
         return s.substring(1, s.length() - 1);
     }
+
+    public static JsonObject toJsonObject(final MapObject mapObject) {
+        final Map<String, Object> map = mapObject.toMap2();
+        return toJsonObject(map);
+    }
+
+    private static JsonObject toJsonObject(final Map<String, Object> map) {
+        final JsonObjectBuilder builder = Json.createObjectBuilder();
+        for (final Map.Entry<String, Object> entry : map.entrySet()) {
+            builder.add(entry.getKey(), toJsonObject(entry.getValue()));
+        }
+        return builder.build();
+    }
+
+    private static JsonValue toJsonObject(final Object value) {
+        if (value == null) return JsonValue.NULL;
+        if (value instanceof String) return Json.createValue((String) value);
+        if (value instanceof Boolean) return ((Boolean) value) ? JsonValue.TRUE : JsonValue.FALSE;
+        if (value instanceof Byte) return Json.createValue(((Byte) value).byteValue());
+        if (value instanceof Short) return Json.createValue(((Short) value).shortValue());
+        if (value instanceof Integer) return Json.createValue(((Integer) value).intValue());
+        if (value instanceof Long) return Json.createValue(((Long) value).longValue());
+        if (value instanceof Float) return Json.createValue(((Float) value).floatValue());
+        if (value instanceof Double) return Json.createValue(((Double) value).doubleValue());
+        if (value instanceof BigDecimal) return Json.createValue(((BigDecimal) value));
+        if (value instanceof BigInteger) return Json.createValue(((BigInteger) value));
+        if (value instanceof Map) return toJsonObject((Map) value);
+        if (value instanceof List) {
+            final JsonArrayBuilder array = Json.createArrayBuilder();
+            for (final Object o : (List) value) {
+                array.add(toJsonObject(o));
+            }
+            return array.build();
+        }
+        throw new IllegalStateException("Unsupported type: " + value);
+    }
+
 
     public List<Issue> getIssuesFromFilter(final Filter filter) throws Exception {
         return null;
