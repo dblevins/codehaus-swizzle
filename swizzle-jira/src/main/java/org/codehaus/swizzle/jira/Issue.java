@@ -277,12 +277,25 @@ public class Issue extends MapObject implements Comparable {
         getSubTasks().remove(issue);
     }
 
+    @Deprecated
     protected Issue getParentTask() {
-        return (Issue) fields.getMapObject("parentTask", Issue.class);
+        return getParent();
     }
 
+    @Deprecated
     protected void setParentTask(Issue parentTask) {
-        fields.setMapObject("parentTask", parentTask);
+        setParent(parentTask);
+    }
+
+    public Issue getParent() {
+        return (Issue) fields.getMapObject("parent", Issue.class);
+    }
+
+    public void setParent(Issue parentTask) {
+        fields.setMapObject("parent", parentTask);
+        if (parentTask != null) {
+            setType(IssueType.SUBTASK);
+        }
     }
 
     /**
@@ -386,6 +399,7 @@ public class Issue extends MapObject implements Comparable {
     public Map toMap2() {
         return super.toMap2();
     }
+
     public Map toMap() {
         // It's unlikely that you can even update the votes via xml-rpc
         // till we know for sure, best to make sure the tally is current
@@ -429,5 +443,11 @@ public class Issue extends MapObject implements Comparable {
     @Override
     public String toString() {
         return getKey();
+    }
+
+    public static Issue fromKey(final String key) {
+        final Issue issue = new Issue();
+        issue.setKey(key);
+        return issue;
     }
 }

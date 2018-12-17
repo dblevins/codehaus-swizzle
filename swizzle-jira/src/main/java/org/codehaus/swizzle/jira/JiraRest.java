@@ -16,6 +16,7 @@
 package org.codehaus.swizzle.jira;
 
 import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.Response;
 
@@ -25,14 +26,22 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
+import javax.json.JsonWriter;
+import javax.json.JsonWriterFactory;
 import javax.json.spi.JsonProvider;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static javax.json.JsonValue.ValueType.ARRAY;
 import static javax.json.JsonValue.ValueType.FALSE;
@@ -42,14 +51,31 @@ import static javax.json.JsonValue.ValueType.OBJECT;
 import static javax.json.JsonValue.ValueType.STRING;
 import static javax.json.JsonValue.ValueType.TRUE;
 
-public class JiraRest implements Jira {
+public class JiraRest implements Jira, Closeable {
 
     private final URI base;
     private final AsyncHttpClient client;
+    private String credentials;
 
     public JiraRest(final String base) {
-        this.base = URI.create(base);
+        this(URI.create(base));
+    }
+
+    public JiraRest(final URI uri) {
+        this.base = uri;
         this.client = new DefaultAsyncHttpClient();
+    }
+
+    public void close() {
+        try {
+            client.close();
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void login(final String username, final String password) {
+        this.credentials = Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }
 
     public List getComments(final String issueKey) {
@@ -65,115 +91,23 @@ public class JiraRest implements Jira {
     }
 
     public Issue createIssue(final Issue issue) throws Exception {
-        try {
-
-            final Map map = issue.toMap();
-
-            final URI issueUri = base.resolve("issue");
-
-            final Response response = client.preparePost(issueUri.toASCIIString())
-                    .execute().get();
-            final JsonProvider provider = JsonProvider.provider();
-            final JsonReader reader = provider.createReader(response.getResponseBodyAsStream());
-            final JsonObject jsonObject = reader.readObject();
-
-            return new Issue(toMap(jsonObject));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        final URI issueUri = base.resolve("issue");
+        return post(issue, issueUri, 201, JiraRest::parseIssue);
     }
 
     public Issue updateIssue(final String issueKey, final Issue issue) throws Exception {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public Issue getIssue(final String issueKey) {
-        try {
-            final URI issueUri = base.resolve("issue/" + issueKey);
-
-            final Response response = client.prepareGet(issueUri.toASCIIString()).execute().get();
-            final JsonProvider provider = JsonProvider.provider();
-            final JsonReader reader = provider.createReader(response.getResponseBodyAsStream());
-            final JsonObject jsonObject = reader.readObject();
-
-            return new Issue(toMap(jsonObject));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        final URI issueUri = base.resolve("issue/" + issueKey);
+        return get(Issue.class, issueUri, 200, JiraRest::parseIssue);
     }
 
-    private static Map<String, Object> toMap(final JsonObject jsonObject) {
-        final Map<String, Object> map = new HashMap<>();
-
-        for (final Map.Entry<String, JsonValue> entry : jsonObject.entrySet()) {
-            final String key = entry.getKey();
-            final JsonValue value = entry.getValue();
-
-            map.put(key, toJava(value));
-        }
-
-        return map;
+    public static Issue parseIssue(final String json) {
+        final JsonObject jsonObject = parseJsonObject(json);
+        return new Issue(toMap(jsonObject));
     }
-
-    private static Object toJava(final JsonValue value) {
-        final JsonValue.ValueType valueType = value.getValueType();
-        if (STRING.equals(valueType)) return asString(value);
-        else if (OBJECT.equals(valueType)) return toMap(value.asJsonObject());
-        else if (FALSE.equals(valueType)) return false;
-        else if (TRUE.equals(valueType)) return true;
-        else if (NUMBER.equals(valueType)) return value.toString();
-        else if (NULL.equals(valueType)) return null;
-        else if (ARRAY.equals(valueType)) {
-            final List<Object> list = new ArrayList<Object>();
-            for (final JsonValue jsonValue : value.asJsonArray()) {
-                list.add(toJava(jsonValue));
-            }
-            return list;
-        }
-        throw new IllegalStateException("Unknown JsonValue type: " + valueType);
-    }
-
-    private static String asString(final JsonValue value) {
-        final String s = value.toString();
-        return s.substring(1, s.length() - 1);
-    }
-
-    public static JsonObject toJsonObject(final MapObject mapObject) {
-        final Map<String, Object> map = mapObject.toMap2();
-        return toJsonObject(map);
-    }
-
-    private static JsonObject toJsonObject(final Map<String, Object> map) {
-        final JsonObjectBuilder builder = Json.createObjectBuilder();
-        for (final Map.Entry<String, Object> entry : map.entrySet()) {
-            builder.add(entry.getKey(), toJsonObject(entry.getValue()));
-        }
-        return builder.build();
-    }
-
-    private static JsonValue toJsonObject(final Object value) {
-        if (value == null) return JsonValue.NULL;
-        if (value instanceof String) return Json.createValue((String) value);
-        if (value instanceof Boolean) return ((Boolean) value) ? JsonValue.TRUE : JsonValue.FALSE;
-        if (value instanceof Byte) return Json.createValue(((Byte) value).byteValue());
-        if (value instanceof Short) return Json.createValue(((Short) value).shortValue());
-        if (value instanceof Integer) return Json.createValue(((Integer) value).intValue());
-        if (value instanceof Long) return Json.createValue(((Long) value).longValue());
-        if (value instanceof Float) return Json.createValue(((Float) value).floatValue());
-        if (value instanceof Double) return Json.createValue(((Double) value).doubleValue());
-        if (value instanceof BigDecimal) return Json.createValue(((BigDecimal) value));
-        if (value instanceof BigInteger) return Json.createValue(((BigInteger) value));
-        if (value instanceof Map) return toJsonObject((Map) value);
-        if (value instanceof List) {
-            final JsonArrayBuilder array = Json.createArrayBuilder();
-            for (final Object o : (List) value) {
-                array.add(toJsonObject(o));
-            }
-            return array.build();
-        }
-        throw new IllegalStateException("Unsupported type: " + value);
-    }
-
 
     public List<Issue> getIssuesFromFilter(final Filter filter) throws Exception {
         return null;
@@ -349,5 +283,138 @@ public class JiraRest implements Jira {
 
     public Issue fill(final Issue issue) {
         return null;
+    }
+
+    private static JsonObject parseJsonObject(final String json) {
+        final JsonProvider provider = JsonProvider.provider();
+        final JsonReader reader = provider.createReader(new ByteArrayInputStream(json.getBytes()));
+        return reader.readObject();
+    }
+
+    private static Map<String, Object> toMap(final JsonObject jsonObject) {
+        final Map<String, Object> map = new HashMap<>();
+
+        for (final Map.Entry<String, JsonValue> entry : jsonObject.entrySet()) {
+            final String key = entry.getKey();
+            final JsonValue value = entry.getValue();
+
+            map.put(key, toJava(value));
+        }
+
+        return map;
+    }
+
+    private static Object toJava(final JsonValue value) {
+        final JsonValue.ValueType valueType = value.getValueType();
+        if (STRING.equals(valueType)) return asString(value);
+        else if (OBJECT.equals(valueType)) return toMap(value.asJsonObject());
+        else if (FALSE.equals(valueType)) return false;
+        else if (TRUE.equals(valueType)) return true;
+        else if (NUMBER.equals(valueType)) return value.toString();
+        else if (NULL.equals(valueType)) return null;
+        else if (ARRAY.equals(valueType)) {
+            final List<Object> list = new ArrayList<Object>();
+            for (final JsonValue jsonValue : value.asJsonArray()) {
+                list.add(toJava(jsonValue));
+            }
+            return list;
+        }
+        throw new IllegalStateException("Unknown JsonValue type: " + valueType);
+    }
+
+    private static String asString(final JsonValue value) {
+        final String s = value.toString();
+        return s.substring(1, s.length() - 1);
+    }
+
+    public static JsonObject toJsonObject(final MapObject mapObject) {
+        final Map<String, Object> map = mapObject.toMap2();
+        return toJsonObject(map);
+    }
+
+    private static JsonObject toJsonObject(final Map<String, Object> map) {
+        final JsonObjectBuilder builder = Json.createObjectBuilder();
+        for (final Map.Entry<String, Object> entry : map.entrySet()) {
+            builder.add(entry.getKey(), toJsonObject(entry.getValue()));
+        }
+        return builder.build();
+    }
+
+    private static JsonValue toJsonObject(final Object value) {
+        if (value == null) return JsonValue.NULL;
+        if (value instanceof String) return Json.createValue((String) value);
+        if (value instanceof Boolean) return ((Boolean) value) ? JsonValue.TRUE : JsonValue.FALSE;
+        if (value instanceof Byte) return Json.createValue(((Byte) value).byteValue());
+        if (value instanceof Short) return Json.createValue(((Short) value).shortValue());
+        if (value instanceof Integer) return Json.createValue(((Integer) value).intValue());
+        if (value instanceof Long) return Json.createValue(((Long) value).longValue());
+        if (value instanceof Float) return Json.createValue(((Float) value).floatValue());
+        if (value instanceof Double) return Json.createValue(((Double) value).doubleValue());
+        if (value instanceof BigDecimal) return Json.createValue(((BigDecimal) value));
+        if (value instanceof BigInteger) return Json.createValue(((BigInteger) value));
+        if (value instanceof Map) return toJsonObject((Map) value);
+        if (value instanceof List) {
+            final JsonArrayBuilder array = Json.createArrayBuilder();
+            for (final Object o : (List) value) {
+                array.add(toJsonObject(o));
+            }
+            return array.build();
+        }
+        throw new IllegalStateException("Unsupported type: " + value);
+    }
+
+    public static String toJson(final MapObject mapObject) {
+        final JsonWriterFactory factory = Json.createWriterFactory(new HashMap<>());
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final JsonWriter writer = factory.createWriter(out);
+        writer.write(JiraRest.toJsonObject(mapObject));
+        writer.close();
+        return new String(out.toByteArray());
+    }
+
+    private <Entity extends MapObject> Entity post(final Entity entity, final URI issueUri, final int expectedCode, final Function<String, Entity> parse) {
+        try {
+            final BoundRequestBuilder requestBuilder = client.preparePost(issueUri.toASCIIString())
+                    .setHeader("Content-Type", "application/json")
+                    .setBody(toJson(entity));
+
+            if (credentials != null) {
+                requestBuilder.setHeader("Authorization", "Basic " + credentials);
+            }
+
+            final Response response = requestBuilder.execute().get();
+
+            if (response.getStatusCode() != expectedCode) {
+                throw new RequestFailedException(response.getStatusCode(), response.getResponseBody());
+            }
+
+            final String json = response.getResponseBody();
+
+            return parse.apply(json);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private <Entity extends MapObject> Entity get(final Class<Entity> type, final URI uri, final int expectedCode, final Function<String, Entity> parse) {
+        try {
+            final BoundRequestBuilder requestBuilder = client.prepareGet(uri.toASCIIString());
+
+            if (credentials != null) {
+                requestBuilder.setHeader("Authorization", "Basic " + credentials);
+            }
+
+            final Response response = requestBuilder.execute().get();
+
+            if (response.getStatusCode() != expectedCode) {
+                throw new RequestFailedException(response.getStatusCode(), response.getResponseBody());
+            }
+
+            final String json = response.getResponseBody();
+
+            return parse.apply(json);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -1,0 +1,18 @@
+{
+  "fields": {
+    "project": {
+      "key": "OPENEJB"
+    },
+    "issuetype": {
+      "name": "Sub-task"
+    },
+    "description": "Keep going",
+    "labels": [
+      "generated"
+    ],
+    "parent": {
+      "key": "OPENEJB-2139"
+    },
+    "summary": "Do more things"
+  }
+}

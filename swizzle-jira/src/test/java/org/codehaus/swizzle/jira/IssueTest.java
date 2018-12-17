@@ -1,7 +1,10 @@
 package org.codehaus.swizzle.jira;
 
 import org.junit.Test;
+import org.tomitribe.util.IO;
 
+import java.io.IOException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
@@ -81,6 +84,31 @@ public class IssueTest {
         assertEquals("Examples and Documentation", component.getName());
         assertEquals(12332465, component.getId());
     }
+
+    @Test
+    public void testProject() throws Exception {
+        final Issue issue = getIssue("OPENEJB-123");
+
+        // Assert Component
+        final Project project = issue.getProject();
+        assertEquals("OpenEJB", project.getName());
+        assertEquals("OPENEJB", project.getKey());
+        assertEquals(null, project.getDescription());
+        assertEquals(null, project.getProjectUrl());
+        assertEquals(12310530, project.getId());
+    }
+
+    @Test
+    public void testParent() throws Exception {
+        final Issue issue = getIssue("OPENEJB-100");
+
+        assertEquals("Sub-task", issue.getType().getName());
+
+        final Issue parent = issue.getParent();
+        assertEquals("OPENEJB-98", parent.getKey());
+        assertEquals("Dependency Injection", parent.getSummary());
+    }
+
 
     @Test
     public void testFixVersion() throws Exception {
@@ -175,9 +203,10 @@ public class IssueTest {
     }
 
 
-    private static Issue getIssue(final String key) {
-        final JiraRest jiraRest = new JiraRest("https://issues.apache.org/jira/rest/api/2/");
-        final Issue issue = jiraRest.getIssue(key);
+    private static Issue getIssue(final String key) throws IOException {
+        final URL resource = IssueTest.class.getClassLoader().getResource("rest/api/2/issue/" + key + ".json");
+        if (resource == null) throw new IllegalStateException("Not found: " + key);
+        final Issue issue = JiraRest.parseIssue(IO.slurp(resource));
         assertEquals(key, issue.getKey());
         return issue;
     }

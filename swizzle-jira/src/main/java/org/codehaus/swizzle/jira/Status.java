@@ -29,4 +29,20 @@ public class Status extends BasicObject {
     public Status(Map data) {
         super(data);
     }
+
+    public static final Status BLOCKER = new Status(){{
+        setName("Blocker");
+    }};
+    public static final Status CRITICAL = new Status(){{
+        setName("Critical");
+    }};
+    public static final Status MAJOR = new Status(){{
+        setName("Major");
+    }};
+    public static final Status MINOR = new Status(){{
+        setName("Minor");
+    }};
+    public static final Status TRIVIAL = new Status(){{
+        setName("Trivial");
+    }};
 }

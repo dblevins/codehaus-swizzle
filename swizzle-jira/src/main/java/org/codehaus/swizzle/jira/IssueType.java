@@ -16,6 +16,8 @@
  */
 package org.codehaus.swizzle.jira;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,5 +31,27 @@ public class IssueType extends BasicObject {
 
     public IssueType() {
         super();
+    }
+
+    public static final IssueType BUG = fromName("Bug");
+    public static final IssueType IMPROVEMENT = fromName("Improvement");
+    public static final IssueType NEW_FEATURE = fromName("New Feature");
+    public static final IssueType TEST = fromName("Test");
+    public static final IssueType TASK = fromName("Task");
+    public static final IssueType SUBTASK = fromName("Sub-task");
+
+    public static IssueType fromName(final String name) {
+        final List<IssueType> types = Arrays.asList(BUG, IMPROVEMENT, NEW_FEATURE, TEST, TASK, SUBTASK);
+        for (final IssueType type : types) {
+            if (type.getName().equalsIgnoreCase(name)) return type;
+        }
+
+        if ("subtask".equalsIgnoreCase(name)) return SUBTASK;
+        if ("feature".equalsIgnoreCase(name)) return NEW_FEATURE;
+        if ("newfeature".equalsIgnoreCase(name)) return NEW_FEATURE;
+
+        final IssueType issueType = new IssueType();
+        issueType.setName(name);
+        return issueType;
     }
 }
