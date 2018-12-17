@@ -1,0 +1,53 @@
+= Swizzle
+
+Swizzle is an old codebase from the Codehaus days.  Swizzle Stream has moved on, so largely only Swizzle Jira remains.
+
+To build:
+
+[source]
+----
+git clone git@github.com:dblevins/codehaus-swizzle.git &&
+cd codehaus-swizzle &&
+mvn clean install -DskipTests -DfailIfNoTests=false
+----
+
+== Swizzle Jira CLI
+
+Once built you should have an awesome new command for creating JIRAs
+
+[source]
+----
+$ ls -la swizzle-jira-cli/target/sjira
+-rwxr-xr-x  1 dblevins  wheel  6999583 Dec 16 23:32 swizzle-jira-cli/target/sjira
+----
+
+Copy that into a `bin` directory of your chosing so it is in your path.  Then you need to set it up.  It thinks in `git remote` style so you can have several JIRA installs that you work with, each has a name.
+
+[source]
+----
+$ sjira remote add apache https://issues.apache.org/jira/rest/api/2/
+$ sjira remote login apache dblevins notMyRealPassw0rd
+----
+
+Once your remote is setup, you can list subtasks for an issue
+
+[source]
+----
+$ sjira subtasks list apache OPENEJB-98
+ - [OPENEJB-99] Dependency Injection: Public field
+ - [OPENEJB-100] Dependency Injection: Setter
+ - [OPENEJB-101] Injection of Environment Entries
+ - [OPENEJB-102] Injection of EJB References
+ - [OPENEJB-103] Injection of Resource Manager Connection Factory References
+ - [OPENEJB-104] Injection of Resource Environment References
+ - [OPENEJB-105] Injection of Message Destination References
+ - [OPENEJB-106] Injection of Persistence Unit References
+ - [OPENEJB-107] Injection of Persistence Context References
+----
+
+You can create subtasks for an issue
+
+[source]
+----
+$ sjira subtasks add apache OPENEJB-2139 "Testing sjira command-line"
+----
