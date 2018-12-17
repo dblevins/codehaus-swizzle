@@ -137,4 +137,11 @@ public class Project extends MapObject {
         result = 29 * result + (getKey() != null ? getKey().hashCode() : 0);
         return result;
     }
+    
+    public static Project fromKey(final String name){
+        final Project project = new Project();
+        project.setKey(name);
+        return project;
+    }
+    
 }

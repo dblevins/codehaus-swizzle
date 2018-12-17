@@ -54,10 +54,10 @@ public class IssueCmd {
         if (assignee != null) issue.setAssignee(assignee);
         if (reporter != null) issue.setReporter(reporter);
         if (description != null) issue.setDescription(description);
-        if (priority != null) issue.setFixVersions(fixVersions);
-        if (priority != null) issue.setComponents(components);
-        if (priority != null) issue.setLabels(labels);
-        if (priority != null) issue.setParent(parent);
+        if (fixVersions != null) issue.setFixVersions(fixVersions);
+        if (components != null) issue.setComponents(components);
+        if (labels != null) issue.setLabels(labels);
+        if (parent != null) issue.setParent(parent);
 
         return "done";
     }

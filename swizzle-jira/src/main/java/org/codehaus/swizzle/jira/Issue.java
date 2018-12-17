@@ -30,16 +30,13 @@ public class Issue extends MapObject implements Comparable {
     private final MapObject fields;
 
     public Issue() {
-        this(new HashMap() {{
-            put("fields", new HashMap<String, Object>());
-        }});
+        this(new HashMap<String, Object>());
     }
 
     public Issue(Map data) {
-        super(data);
+        super(normalize(data));
 
         final Object fields = data.get("fields");
-        if (fields == null) throw new IllegalStateException("No 'fields' entry found");
         if (fields.getClass().isAssignableFrom(Map.class)) throw new IllegalStateException("No 'fields' entry should be a map: found " + fields.getClass());
         this.fields = new MapObject(Map.class.cast(fields), false);
 
@@ -57,6 +54,11 @@ public class Issue extends MapObject implements Comparable {
         xmlrpcNoSend.add("parentTask");
         xmlrpcNoSend.add("attachments");
         xmlrpcNoSend.add("comments");
+    }
+
+    private static Map normalize(final Map data) {
+        data.computeIfAbsent("fields", o -> new HashMap<>());
+        return data;
     }
 
 

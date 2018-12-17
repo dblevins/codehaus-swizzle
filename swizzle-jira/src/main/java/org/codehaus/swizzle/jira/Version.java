@@ -135,4 +135,10 @@ public class Version extends MapObject implements Comparable {
         }
         return 0;
     }
+    
+    public static Version fromName(final String name){
+        final Version version = new Version();
+        version.setName(name);
+        return version;
+    }
 }

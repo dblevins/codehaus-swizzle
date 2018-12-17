@@ -42,4 +42,10 @@ public class Priority extends BasicObject {
         setString("colour", colour);
     }
 
+    public static Priority fromName(final String name){
+        final Priority priority = new Priority();
+        priority.setName(name);
+        return priority;
+    }
+
 }

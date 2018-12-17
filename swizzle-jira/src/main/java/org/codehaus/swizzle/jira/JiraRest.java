@@ -374,9 +374,10 @@ public class JiraRest implements Jira, Closeable {
 
     private <Entity extends MapObject> Entity post(final Entity entity, final URI issueUri, final int expectedCode, final Function<String, Entity> parse) {
         try {
+            final String body = toJson(entity);
             final BoundRequestBuilder requestBuilder = client.preparePost(issueUri.toASCIIString())
                     .setHeader("Content-Type", "application/json")
-                    .setBody(toJson(entity));
+                    .setBody(body);
 
             if (credentials != null) {
                 requestBuilder.setHeader("Authorization", "Basic " + credentials);
@@ -391,6 +392,8 @@ public class JiraRest implements Jira, Closeable {
             final String json = response.getResponseBody();
 
             return parse.apply(json);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

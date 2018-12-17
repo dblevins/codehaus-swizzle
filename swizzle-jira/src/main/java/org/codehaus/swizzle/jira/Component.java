@@ -82,4 +82,11 @@ public class Component extends MapObject {
         result = 29 * result + (getName() != null ? getName().hashCode() : 0);
         return result;
     }
+    
+    public static Component fromName(final String name){
+        final Component component = new Component();
+        component.setName(name);
+        return component;
+    }
+    
 }

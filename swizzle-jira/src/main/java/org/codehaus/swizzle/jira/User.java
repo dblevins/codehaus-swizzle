@@ -106,4 +106,10 @@ public class User extends MapObject {
     public int hashCode() {
         return (getName() != null ? getName().hashCode() : 0);
     }
+
+    public static User fromName(final String name){
+        final User user = new User();
+        user.setName(name);
+        return user;
+    }
 }

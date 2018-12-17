@@ -33,12 +33,12 @@ public class IssueType extends BasicObject {
         super();
     }
 
-    public static final IssueType BUG = fromName("Bug");
-    public static final IssueType IMPROVEMENT = fromName("Improvement");
-    public static final IssueType NEW_FEATURE = fromName("New Feature");
-    public static final IssueType TEST = fromName("Test");
-    public static final IssueType TASK = fromName("Task");
-    public static final IssueType SUBTASK = fromName("Sub-task");
+    public static final IssueType BUG = of("Bug");
+    public static final IssueType IMPROVEMENT = of("Improvement");
+    public static final IssueType NEW_FEATURE = of("New Feature");
+    public static final IssueType TEST = of("Test");
+    public static final IssueType TASK = of("Task");
+    public static final IssueType SUBTASK = of("Sub-task");
 
     public static IssueType fromName(final String name) {
         final List<IssueType> types = Arrays.asList(BUG, IMPROVEMENT, NEW_FEATURE, TEST, TASK, SUBTASK);
@@ -50,6 +50,10 @@ public class IssueType extends BasicObject {
         if ("feature".equalsIgnoreCase(name)) return NEW_FEATURE;
         if ("newfeature".equalsIgnoreCase(name)) return NEW_FEATURE;
 
+        return of(name);
+    }
+
+    private static IssueType of(final String name) {
         final IssueType issueType = new IssueType();
         issueType.setName(name);
         return issueType;

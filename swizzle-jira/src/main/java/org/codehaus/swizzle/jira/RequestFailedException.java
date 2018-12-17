@@ -35,6 +35,6 @@ public class RequestFailedException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return String.format("Creation Failed: status %s%n%s", statusCode, responseBody);
+        return String.format("Request Failed: status %s%n%s", statusCode, responseBody);
     }
 }
